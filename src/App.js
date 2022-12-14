@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-// import { useTimer } from "react-timer-hook";
 import "./App.css";
+
 function Paddle({ x, y }) {
   return (
     <div
@@ -15,17 +15,6 @@ function Paddle({ x, y }) {
     ></div>
   );
 }
-
-// function MyTimer({ expiryTimestamp }) {
-//   const {
-//     seconds,
-//     minutes,
-//     isRunning,
-//     start,
-//     pause,
-//     resume,
-//     restart,
-//   }
 
 function Field({ style }) {
   let tl = {
@@ -87,36 +76,12 @@ function Ball({ position }) {
   );
 }
 
-
 export default function App() {
   let [leftY, setLeftY] = useState({ y: 110 });
   let [rightY, setRightY] = useState({ y: 110 });
-  let [ball, setBall] = useState({ x: 150, y: 100, vx: 10, vy: 10 });
+  let [ball, setBall] = useState({ x: 200, y: 100, vx: 0, vy: 0 });
   let [wynik, setWynik] = useState({ left: 0, right: 0 });
-
-// const Timer = (props:any) => {
-//     const {initialMinute = 0,initialSeconds = 0} = props;
-//     const [ minutes, setMinutes ] = useState(initialMinute);
-//     const [seconds, setSeconds ] =  useState(initialSeconds);
-//     useEffect(()=>{
-//     let myInterval = setInterval(() => {
-//             if (seconds > 0) {
-//                 setSeconds(seconds - 1);
-//             }
-//             if (seconds === 0) {
-//                 if (minutes === 0) {
-//                     clearInterval(myInterval)
-//                 } else {
-//                     setMinutes(minutes - 1);
-//                     setSeconds(59);
-//                 }
-//             } 
-//         }, 1000)
-//         return ()=> {
-//             clearInterval(myInterval);
-//           };
-//     });
-
+  let [time, setTime] = useState({ m: 0, s: 0 });
 
   useEffect(() => {
     let klawisz = (e) => {
@@ -136,7 +101,7 @@ export default function App() {
         rightY.y = rightY.y + 10;
         setRightY({ ...rightY });
       }
-      if (e.keyCode === 39  && rightY.y > 10) {
+      if (e.keyCode === 39 && rightY.y > 10) {
         rightY.y = rightY.y - 10;
         setRightY({ ...rightY });
       }
@@ -148,9 +113,54 @@ export default function App() {
     return () => {};
   }, []);
 
+  let changeTime = () => {
+    setTimeout(changeTime(), 1000);
+    if (time.s === 60) {
+      setTime({ ...time, m: time.m + 1, s: 0 });
+    } else {
+      setTime({ ...time, s: time.s + 1 });
+    }
+  };
+
+  let resetBall = () => {
+    ball.x = 200;
+    ball.y = 100;
+    ball.vx = -ball.vx;
+  };
+
+  let cmdStop = () => {
+    ball.x = ball.x;
+    ball.y = ball.y;
+    ball.vx = 0;
+    ball.vy = 0;
+  };
+
+  let cmdStart = () => {
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+    ball.vx = 10;
+    ball.vy = 10;
+  };
+
+  let cmdRestart = () => {
+    setWynik({ ...wynik, right: 0, left: 0 });
+    ball.x = 200;
+    ball.y = 125;
+    ball.vx = 0;
+    ball.vy = 0;
+  };
+
   let aktualizuj = () => {
     ball.x += ball.vx;
     ball.y += ball.vy;
+    if (ball.x <= 2 && ball.y >= 60 && ball.y <= 180) {
+      setWynik({ ...wynik, right: wynik.right + 1 });
+      resetBall();
+    }
+    if (ball.x > 396 && ball.y > 60 && ball.y < 180) {
+      setWynik({ ...wynik, left: wynik.left + 1 });
+      resetBall();
+    }
     if (ball.x <= 10 && leftY.y < ball.y && leftY.y + 40 >= ball.y) {
       ball.x -= ball.vx;
       ball.vx = -ball.vx;
@@ -158,12 +168,6 @@ export default function App() {
     if (ball.x >= 390 && rightY.y < ball.y && rightY.y + 40 >= ball.y) {
       ball.x -= ball.vx;
       ball.vx = -ball.vx;
-    }
-    if (ball.x <= 2 && ball.y >= 60 && ball.y <= 180) {
-      setWynik({ ...wynik, right: wynik.right + 1 });
-    }
-    if (ball.x > 396 && ball.y > 60 && ball.y < 180) {
-      setWynik({ ...wynik, left: wynik.left + 1 });
     }
     if (ball.y > 240) {
       ball.y -= ball.vy;
@@ -184,14 +188,18 @@ export default function App() {
     setBall({ ...ball });
   };
 
-  let cmdStart = () => {};
-
-  setTimeout(aktualizuj, 60);
+  setTimeout(aktualizuj, 30);
   return (
     <div className="App">
       <h1>Ping Pong</h1>
-      <button onClick={cmdStart}>Start</button>
-      <div style={{ textAlign: "center" }}>{1}:{22}</div>
+      <div>
+        <button onClick={cmdStart}>Start</button>
+        <button onClick={cmdStop}>Stop</button>
+        <button onClick={cmdRestart}>Restart</button>
+      </div>
+      <div style={{ textAlign: "center" }}>
+        {time.m}:{time.s}
+      </div>
       <div
         style={{
           marginLeft: "100px",
